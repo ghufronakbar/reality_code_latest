@@ -1,0 +1,190 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model Product {
+  id   String @id @default(uuid())
+  slug String @unique // Unique identifier for the product, used in URLs
+
+  name        String
+  headline    String
+  description String @db.Text()
+
+  thumbnailUrl String
+  images       String[]
+  demoVideoUrl String?
+
+  license     String // e.g. "Commercial", "Personal", "Extended"
+  platforms   String[] // e.g. "Web", "iOS", "Android"
+  tags        String[] // e.g. "POS", "CRM", "Coffee Shop"  
+  keyFeatures String[]
+
+  price         Float
+  originalPrice Float
+
+  productCategoryId     String
+  category              ProductCategory        @relation(fields: [productCategoryId], references: [id], onDelete: Cascade)
+  productSpesifications ProductSpesification[]
+  productTools          ProductTool[]
+  productReviews        ProductReview[]
+
+  isActive  Boolean @default(true)
+  isDeleted Boolean @default(false)
+  isBanned  Boolean @default(false)
+
+  seller   Seller @relation(fields: [sellerId], references: [id], onDelete: Cascade)
+  sellerId String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+}
+
+// This model is used to categorize products, such as "Business", "College Task", etc.
+model ProductCategory {
+  id           String @id @default(uuid())
+  name         String
+  slug         String @unique
+  description  String
+  thumbnailUrl String
+
+  products Product[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+}
+
+model ProductSpesification {
+  id    String @id @default(uuid())
+  name  String // e.g. "Language Support", "Theme Support"
+  value String // e.g. "English & 日本語", "Light & Dark"  
+
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  productId String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+}
+
+model ProductTool {
+  id          String  @id @default(uuid())
+  name        String // e.g. "Database", "Runtime Environment"
+  value       String // e.g. "PostgreSQL", "Node.js"
+  description String? // Optional description for the requirement
+
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  productId String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+}
+
+model ProductReview {
+  id      String  @id @default(uuid())
+  rating  Int // e.g. 1 to 5 stars
+  title   String // Short title for the review
+  comment String? // Optional comment
+  reviewerId  String // In Next Plan, we will add user authentication
+
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  productId String
+
+  reviewer  User @relation(fields: [reviewerId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+}
+
+model User {
+  id       String  @id @default(uuid())
+  email    String  @unique
+  password String?
+
+  provider String? // e.g. "google", "github", "email"
+
+  name              String?
+  profilePictureUrl String?
+  bio               String? // Short biography or description
+
+  role UserRole @default(User)
+
+  roomChats RoomChat[] // Chats the user is part of
+  chats     Chat[] // Messages sent by the user
+  reviews  ProductReview[] // Reviews written by the user
+
+  seller Seller? // Optional seller profile if the user is a seller
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+}
+
+enum UserRole {
+  User
+  Admin
+}
+
+model Seller {
+  id     String @id @default(uuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  name        String
+  logo        String?
+  description String?
+
+  products Product[] // Products listed by the seller
+
+  isActive   Boolean @default(true)
+  isDeleted  Boolean @default(false)
+  isBanned   Boolean @default(false)
+  isVerified Boolean @default(false) // Indicates if the seller is verified
+  // isFeatured Boolean @default(false) // Indicates if the seller is featured
+  // isPremium  Boolean @default(false) // Indicates if the seller has a premium account
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+}
+
+model RoomChat {
+  id   String @id @default(uuid())
+  name String
+
+  users User[]
+  chats Chat[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+}
+
+model Chat {
+  id      String   @id @default(uuid())
+  content String   @db.Text()
+  type    TypeChat @default(Text)
+
+  senderId   String
+  roomChatId String
+
+  sender   User     @relation(fields: [senderId], references: [id], onDelete: Cascade)
+  roomChat RoomChat @relation(fields: [roomChatId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+}
+
+enum TypeChat {
+  Text
+  Image
+  Product
+  AI
+}
