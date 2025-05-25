@@ -3,6 +3,7 @@ import ProductFilters from "@/components/products/product-filters";
 import ProductGrid from "@/components/products/product-grid";
 import SearchBar from "@/components/ui/search-bar";
 import { getCategories } from "@/lib/categories";
+import { PageHeader } from "@/components/ui/page-header";
 
 export default async function ProductsPage({
   searchParams,
@@ -18,8 +19,6 @@ export default async function ProductsPage({
     let shouldFilter = true;
     if (category && typeof category === "string") {
       const arrayCategory = category.split(",");
-      console.log("Filtering by category:", arrayCategory);
-      console.log("Product category:", product.category.id);
       shouldFilter = arrayCategory.includes(product.category.id);
     }
     if (search) {
@@ -45,7 +44,11 @@ export default async function ProductsPage({
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-8">Browse Applications</h1>
+      <PageHeader
+        heading="Browse Applications"
+        description="Discover and purchase high-quality software applications for every need"
+      />
+      
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <div className="md:col-span-1">
           <ProductFilters categories={categories} />

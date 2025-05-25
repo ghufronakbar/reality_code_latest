@@ -1,22 +1,19 @@
 import { getCategories } from "@/lib/categories";
 import { Card, CardContent } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
 import { Package } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
+import { PageHeader } from "@/components/ui/page-header";
 
 export default async function CategoriesPage() {
   const categories = await getCategories();
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <div className="flex items-center gap-2 mb-2">
-        <Package className="w-5 h-5 text-primary" />
-        <h1 className="text-3xl font-bold">Product Categories</h1>
-      </div>
-      <p className="text-muted-foreground mb-8">
-        Browse our collection of software products by category
-      </p>
+      <PageHeader
+        heading="Product Categories"
+        description="Browse our collection of software products by category"
+      />
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {categories.map((category) => (

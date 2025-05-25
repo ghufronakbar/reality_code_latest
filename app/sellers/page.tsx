@@ -3,6 +3,7 @@ import SellerGrid from "@/components/sellers/seller-grid";
 import SellerFilters from "@/components/sellers/seller-filters";
 import { Suspense } from "react";
 import { Loader2 } from "lucide-react";
+import { PageHeader } from "@/components/ui/page-header";
 
 export default async function SellersPage({
   searchParams,
@@ -76,11 +77,16 @@ export default async function SellersPage({
             (product.productReviews.length || 1),
         0
       ) / (seller.products.length || 1),
-    totalSales: seller.products.length, // This is a placeholder. In a real app, you'd track actual sales TODO
+    totalSales: seller.products.length, // This is a placeholder. In a real app, you'd track actual sales
   }));
 
   return (
     <div className="container mx-auto px-4 py-8">
+      <PageHeader
+        heading="Browse Sellers"
+        description="Discover trusted software developers and companies"
+      />
+      
       <div className="flex flex-col md:flex-row justify-between items-start gap-8">
         <div className="w-full md:w-64 flex-shrink-0">
           <SellerFilters />
