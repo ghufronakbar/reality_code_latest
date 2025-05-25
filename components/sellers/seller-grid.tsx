@@ -6,26 +6,10 @@ import { Star, Package, CheckCircle } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
-
-interface Seller {
-  id: string;
-  name: string;
-  description: string | null;
-  logo: string | null;
-  isVerified: boolean;
-  user: {
-    name: string | null;
-    profilePictureUrl: string | null;
-  };
-  averageRating: number;
-  totalSales: number;
-  _count: {
-    products: number;
-  };
-}
+import { SellerCardProps } from "./seller-card";
 
 interface Props {
-  sellers: Seller[];
+  sellers: SellerCardProps[];
 }
 
 export default function SellerGrid({ sellers }: Props) {

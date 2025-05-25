@@ -38,7 +38,7 @@ export default function Header({ categories }: Props) {
     setIsSearchOpen(false);
     if (search.trim()) {
       // Redirect to search results page
-      replace(`/products?search=${encodeURIComponent(search.trim())}`);
+      replace(`/search?search=${encodeURIComponent(search.trim())}`);
     }
   };
 
@@ -118,7 +118,7 @@ export default function Header({ categories }: Props) {
             <form className="flex items-center gap-2" onSubmit={onSubmitSearch}>
               <Input
                 type="search"
-                placeholder="Search products..."
+                placeholder="Search..."
                 className="h-9 w-[200px] lg:w-[300px]"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
