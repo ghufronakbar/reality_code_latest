@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Star, Package, CheckCircle } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 
 interface Seller {
   id: string;
@@ -45,14 +46,23 @@ export default function SellerGrid({ sellers }: Props) {
         <Link key={seller.id} href={`/sellers/${seller.id}`}>
           <Card className="hover:shadow-md transition-shadow">
             <CardHeader className="flex flex-row items-center gap-4">
-              <div className="relative h-16 w-16 rounded-full overflow-hidden">
-                <Image
-                  src={seller.logo || seller.user.profilePictureUrl || "/default-avatar.png"}
-                  alt={seller.name}
-                  fill
+              <Avatar className="relative h-16 w-16 rounded-full overflow-hidden flex-shrink-0 flex items-center justify-center">
+                <AvatarImage
+                  src={
+                    seller.logo ||
+                    seller.user.profilePictureUrl ||
+                    "/default-avatar.png"
+                  }
                   className="object-cover"
                 />
-              </div>
+                <AvatarFallback className="bg-muted text-muted-foreground text-3xl font-bold">
+                  {seller.name
+                    .split(" ")
+                    .slice(0, 2)
+                    .map((word) => word[0])
+                    .join("")}
+                </AvatarFallback>
+              </Avatar>
               <div className="flex-1">
                 <div className="flex items-center gap-2">
                   <h3 className="font-semibold">{seller.name}</h3>
@@ -77,9 +87,7 @@ export default function SellerGrid({ sellers }: Props) {
                 {seller.description}
               </p>
               <div className="flex flex-wrap gap-2 mt-4">
-                <Badge variant="secondary">
-                  {seller.totalSales} sales
-                </Badge>
+                <Badge variant="secondary">{seller.totalSales} sales</Badge>
                 {seller.isVerified && (
                   <Badge variant="outline">Verified Seller</Badge>
                 )}

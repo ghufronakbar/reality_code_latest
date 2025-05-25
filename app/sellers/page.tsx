@@ -7,23 +7,32 @@ import { Loader2 } from "lucide-react";
 export default async function SellersPage({
   searchParams,
 }: {
-  searchParams: { [key: string]: string | string[] | undefined };
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
+  const { search, verified, sort } = await searchParams;
+  const searchTerm = typeof search === "string" ? search : "";
   const sellers = await db.seller.findMany({
     where: {
       AND: [
         { isActive: true },
         { isDeleted: false },
         { isBanned: false },
-        searchParams.search
+        search
           ? {
               OR: [
-                { name: { contains: searchParams.search as string, mode: "insensitive" } },
-                { description: { contains: searchParams.search as string, mode: "insensitive" } },
+                {
+                  name: { contains: searchTerm, mode: "insensitive" },
+                },
+                {
+                  description: {
+                    contains: searchTerm,
+                    mode: "insensitive",
+                  },
+                },
               ],
             }
           : {},
-        searchParams.verified === "true" ? { isVerified: true } : {},
+        verified === "true" ? { isVerified: true } : {},
       ],
     },
     include: {
@@ -60,11 +69,14 @@ export default async function SellersPage({
       seller.products.reduce(
         (acc, product) =>
           acc +
-          product.productReviews.reduce((sum, review) => sum + review.rating, 0) /
+          product.productReviews.reduce(
+            (sum, review) => sum + review.rating,
+            0
+          ) /
             (product.productReviews.length || 1),
         0
       ) / (seller.products.length || 1),
-    totalSales: seller.products.length, // This is a placeholder. In a real app, you'd track actual sales
+    totalSales: seller.products.length, // This is a placeholder. In a real app, you'd track actual sales TODO
   }));
 
   return (

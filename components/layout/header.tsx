@@ -91,6 +91,15 @@ export default function Header({ categories }: Props) {
                   </Link>
                 </NavigationMenuItem>
                 <NavigationMenuItem>
+                  <Link href="/sellers" legacyBehavior passHref>
+                    <NavigationMenuLink
+                      className={navigationMenuTriggerStyle()}
+                    >
+                      Sellers
+                    </NavigationMenuLink>
+                  </Link>
+                </NavigationMenuItem>
+                <NavigationMenuItem>
                   <Link href="/deals" legacyBehavior passHref>
                     <NavigationMenuLink
                       className={navigationMenuTriggerStyle()}

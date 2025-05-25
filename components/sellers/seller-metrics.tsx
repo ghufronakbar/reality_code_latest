@@ -1,5 +1,6 @@
 "use client";
 
+import { MappedSellerById } from "@/app/sellers/[id]/page";
 import {
   Card,
   CardContent,
@@ -10,14 +11,14 @@ import {
 import { Star, Package, TrendingUp } from "lucide-react";
 
 interface Props {
-  metrics: {
-    totalProducts: number;
-    averageRating: number;
-    totalSales: number;
-  };
+  item: MappedSellerById;
 }
 
-export default function SellerMetrics({ metrics }: Props) {
+export default function SellerMetrics({ item }: Props) {
+  if (!item) {
+    return null;
+  }
+  const { metrics } = item;
   return (
     <Card>
       <CardHeader>
@@ -31,10 +32,12 @@ export default function SellerMetrics({ metrics }: Props) {
           </div>
           <div>
             <p className="text-sm font-medium">Average Rating</p>
-            <p className="text-2xl font-bold">{metrics.averageRating.toFixed(1)}</p>
+            <p className="text-2xl font-bold">
+              {metrics.averageRating.toFixed(1)}
+            </p>
           </div>
         </div>
-        
+
         <div className="flex items-center gap-4">
           <div className="p-2 bg-primary/10 rounded-full">
             <Package className="h-4 w-4 text-primary" />
@@ -44,7 +47,7 @@ export default function SellerMetrics({ metrics }: Props) {
             <p className="text-2xl font-bold">{metrics.totalProducts}</p>
           </div>
         </div>
-        
+
         <div className="flex items-center gap-4">
           <div className="p-2 bg-primary/10 rounded-full">
             <TrendingUp className="h-4 w-4 text-primary" />

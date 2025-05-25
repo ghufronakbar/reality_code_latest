@@ -11,19 +11,19 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useState } from "react";
 import { Send } from "lucide-react";
+import { MappedSellerById } from "@/app/sellers/[id]/page";
 
 interface Props {
-  seller: {
-    id: string;
-    name: string;
-    user: {
-      email: string;
-    };
-  };
+  item: MappedSellerById;
 }
 
-export default function SellerContact({ seller }: Props) {
+export default function SellerContact({ item }: Props) {
   const [message, setMessage] = useState("");
+
+  if (!item) {
+    return null;
+  }
+  const { seller } = item;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
