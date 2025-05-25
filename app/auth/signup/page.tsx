@@ -19,69 +19,75 @@ import { toast } from "@/hooks/use-toast";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { signUp } from "@/lib/auth";
+import { AxiosError } from "axios";
 
-const formSchema = z.object({
-  email: z.string().email({ message: "Please enter a valid email address." }),
-  password: z
-    .string()
-    .min(8, { message: "Password must be at least 8 characters." }),
-});
+const formSchema = z
+  .object({
+    name: z.string().min(2, { message: "Name must be at least 2 characters." }),
+    email: z.string().email({ message: "Please enter a valid email address." }),
+    password: z
+      .string()
+      .min(8, { message: "Password must be at least 8 characters." }),
+    confirmPassword: z.string().min(8, { message: "Confirm your password" }),
+  })
+  .superRefine(({ password, confirmPassword }, ctx) => {
+    if (password !== confirmPassword) {
+      ctx.addIssue({
+        code: "custom",
+        message: "Passwords do not match",
+        path: ["confirmPassword"],
+      });
+    }
+  });
 
-export default function SignInPage() {
+export type SignUpSchema = z.infer<typeof formSchema>;
+
+export default function SignUpPage() {
   const [loading, setLoading] = useState(false);
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
+      name: "",
       email: "",
       password: "",
+      confirmPassword: "",
     },
   });
   const router = useRouter();
 
-  const onSubmit = async (
-    e: React.FormEvent<HTMLFormElement>,
-    values: z.infer<typeof formSchema>
-  ) => {
-    e.preventDefault();
+  const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
       if (loading) return;
       setLoading(true);
       toast({
-        title: "Signing in",
-        description: "Please wait while we sign you in.",
+        title: "Creating account",
+        description: "Please wait while we create your account.",
       });
 
-      const form = e.currentTarget;
-      const data = new FormData(form);
-      const signInRes = await signIn("credentials", {
-        email: data.get("email"),
-        password: data.get("password"),
-        redirect: false,
-      });
-      console.log({ signInRes });
-
-      if (signInRes?.error) {
-        toast({
-          title: "Sign In Failed",
-          description: "Please check your credentials and try again.",
-        });
-      }
-
-      if (signInRes?.ok) {
-        toast({
-          title: "Signed in",
-          description: "You have successfully signed in.",
-        });
-        router.push(signInRes.url || "/");
-      }
-
-      // This would be replaced with actual authentication logic
+      // Simulate sign up logic or replace with actual registration API
       console.log(values);
-    } catch (error) {
+      await signUp(values, router);
+
+      // Example success message
       toast({
-        title: "Error",
-        description: "An error occurred while signing in.",
+        title: "Account Created",
+        description: "Your account has been successfully created.",
       });
+
+      router.push("/auth/signin");
+    } catch (error) {
+      if (error instanceof AxiosError) {
+        toast({
+          title: "Something went wrong",
+          description: error.response?.data?.toString(),
+        });
+      } else if (error instanceof Error) {
+        toast({
+          title: "Something went wrong",
+          description: "Please try again later",
+        });
+      }
     } finally {
       setLoading(false);
     }
@@ -91,17 +97,31 @@ export default function SignInPage() {
     <div className="container mx-auto px-4 py-16 flex justify-center">
       <div className="w-full max-w-md space-y-8 bg-card p-8 rounded-lg shadow-sm">
         <div className="text-center">
-          <h1 className="text-2xl font-bold">Sign In</h1>
+          <h1 className="text-2xl font-bold">Sign Up</h1>
           <p className="text-muted-foreground mt-2">
-            Welcome back! Please sign in to continue.
+            Create your account to get started.
           </p>
         </div>
 
         <Form {...form}>
           <form
-            onSubmit={(e) => onSubmit(e, form.getValues())}
+            onSubmit={form.handleSubmit(onSubmit)} // Use handleSubmit here
             className="space-y-6"
           >
+            <FormField
+              control={form.control}
+              name="name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Name</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Your Name" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
             <FormField
               control={form.control}
               name="email"
@@ -130,17 +150,31 @@ export default function SignInPage() {
               )}
             />
 
+            <FormField
+              control={form.control}
+              name="confirmPassword"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Confirm Password</FormLabel>
+                  <FormControl>
+                    <Input type="password" placeholder="********" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
             <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? "Signing in..." : "Sign In"}
+              {loading ? "Creating account..." : "Sign Up"}
             </Button>
           </form>
         </Form>
 
         <div className="mt-4 text-center">
           <p className="text-sm text-muted-foreground">
-            Don&apos;t have an account?{" "}
-            <Link href="/auth/signup" className="text-primary hover:underline">
-              Sign up
+            Already have an account?{" "}
+            <Link href="/auth/signin" className="text-primary hover:underline">
+              Sign in
             </Link>
           </p>
         </div>

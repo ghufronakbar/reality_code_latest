@@ -21,6 +21,9 @@ import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { MappedCategories } from "@/lib/categories";
 import { useRouter } from "next/navigation";
+import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
+import { useSes } from "../session-wrapper";
+import { signOut } from "next-auth/react";
 
 interface Props {
   categories: MappedCategories;
@@ -30,6 +33,8 @@ export default function Header({ categories }: Props) {
   const { itemCount } = useCart();
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [search, setSearch] = useState("");
+
+  const { session } = useSes();
 
   const { replace } = useRouter();
 
@@ -169,10 +174,24 @@ export default function Header({ categories }: Props) {
           </Button>
 
           <Button variant="ghost" size="icon" asChild>
-            <Link href="/auth/signin">
-              <User className="h-5 w-5" />
-              <span className="sr-only">Account</span>
-            </Link>
+            <Avatar className="h-10 w-10 rounded-full object-cover overflow-hidden">
+              <Link href="/profile">
+                <AvatarImage src={session?.user?.profilePictureUrl || ""} />
+              </Link>
+              <AvatarFallback className="bg-transparent">
+                {session?.user ? (
+                  <Link href="/profile">
+                    <p>
+                      {session?.user?.name?.split(" ").slice(0, 2).map((word) => word[0]).join("")}
+                    </p>
+                  </Link>
+                ) : (
+                  <Link href="/auth/signin">
+                    <User className="h-5 w-5" />
+                  </Link>
+                )}
+              </AvatarFallback>
+            </Avatar>
           </Button>
         </div>
       </div>
