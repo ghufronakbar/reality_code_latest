@@ -4,7 +4,11 @@ import { db } from "@/config/db";
 import { notFound } from "next/navigation";
 import ProductGrid from "@/components/products/product-grid";
 import ProductFilters from "@/components/products/product-filters";
-import { Breadcrumb, BreadcrumbItem, BreadcrumbLink } from "@/components/ui/breadcrumb";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+} from "@/components/ui/breadcrumb";
 import { Package } from "lucide-react";
 
 interface Props {
@@ -18,9 +22,9 @@ export async function generateStaticParams() {
     slug: category.slug,
   }));
 }
-
 export default async function CategoryPage({ params, searchParams }: Props) {
   const { slug } = await params;
+  const { search, price, rating } = await searchParams;
   const category = await db.productCategory.findUnique({
     where: { slug },
     include: {
@@ -40,7 +44,6 @@ export default async function CategoryPage({ params, searchParams }: Props) {
   // Filter products by category and search params
   const filteredProducts = products.filter((product) => {
     let shouldFilter = product.category.id === category.id;
-    const { search, price, rating } = searchParams;
 
     if (search && typeof search === "string") {
       const searchTerm = search.toLowerCase();
@@ -52,7 +55,8 @@ export default async function CategoryPage({ params, searchParams }: Props) {
 
     if (price && typeof price === "string") {
       const [min, max] = price.split("-").map(Number);
-      shouldFilter = shouldFilter && product.price >= min && product.price <= max;
+      shouldFilter =
+        shouldFilter && product.price >= min && product.price <= max;
     }
 
     if (rating && typeof rating === "string") {
@@ -66,7 +70,7 @@ export default async function CategoryPage({ params, searchParams }: Props) {
   return (
     <div className="container mx-auto px-4 py-8">
       <Breadcrumb>
-        <BreadcrumbItem>
+        <BreadcrumbItem isFirst>
           <BreadcrumbLink href="/">Home</BreadcrumbLink>
         </BreadcrumbItem>
         <BreadcrumbItem>

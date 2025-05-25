@@ -8,6 +8,7 @@ interface BreadcrumbProps {
 interface BreadcrumbItemProps {
   children: React.ReactNode;
   isCurrentPage?: boolean;
+  isFirst?: boolean;
 }
 
 interface BreadcrumbLinkProps {
@@ -23,11 +24,17 @@ export function Breadcrumb({ children }: BreadcrumbProps) {
   );
 }
 
-export function BreadcrumbItem({ children, isCurrentPage }: BreadcrumbItemProps) {
+export function BreadcrumbItem({
+  children,
+  isCurrentPage,
+  isFirst = false,
+}: BreadcrumbItemProps) {
   return (
     <li className="flex items-center">
       <div className="flex items-center">
-        <ChevronRight className="h-4 w-4 text-muted-foreground mx-2" />
+        {!isFirst && (
+          <ChevronRight className="h-4 w-4 text-muted-foreground mx-2" />
+        )}
         <span
           className={
             isCurrentPage
