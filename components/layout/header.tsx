@@ -14,7 +14,15 @@ import {
   NavigationMenuTrigger,
 } from "@/components/ui/navigation-menu";
 import { cn } from "@/lib/utils";
-import { Search, ShoppingCart, User, Menu, X } from "lucide-react";
+import {
+  Search,
+  ShoppingCart,
+  User,
+  Menu,
+  X,
+  UserIcon,
+  LogOutIcon,
+} from "lucide-react";
 import { useCart } from "@/hooks/use-cart";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useState } from "react";
@@ -45,6 +53,20 @@ export default function Header({ categories }: Props) {
       // Redirect to search results page
       replace(`/search?search=${encodeURIComponent(search.trim())}`);
     }
+  };
+
+  const [hovered, setHovered] = useState(false);
+
+  const handleMouseEnter = (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (session) {
+      setHovered(true);
+    }
+  };
+
+  const handleMouseLeave = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setHovered(false);
   };
 
   return (
@@ -173,26 +195,63 @@ export default function Header({ categories }: Props) {
             </Link>
           </Button>
 
-          <Button variant="ghost" size="icon" asChild>
-            <Avatar className="h-10 w-10 rounded-full object-cover overflow-hidden">
+          <div className="relative">
+            <Avatar
+              className="h-10 w-10 rounded-full object-cover overflow-hidden"
+              onMouseEnter={handleMouseEnter}
+              onMouseLeave={handleMouseLeave}
+            >
               <Link href="/profile">
                 <AvatarImage src={session?.user?.profilePictureUrl || ""} />
               </Link>
               <AvatarFallback className="bg-transparent">
-                {session?.user ? (
-                  <Link href="/profile">
-                    <p>
-                      {session?.user?.name?.split(" ").slice(0, 2).map((word) => word[0]).join("")}
-                    </p>
-                  </Link>
-                ) : (
-                  <Link href="/auth/signin">
-                    <User className="h-5 w-5" />
-                  </Link>
-                )}
+                <div className="flex h-full items-center justify-center">
+                  {session ? (
+                    <Link href="/profile">
+                      <p>
+                        {session?.user?.name
+                          ?.split(" ")
+                          .slice(0, 2)
+                          .map((word) => word[0])
+                          .join("")}
+                      </p>
+                    </Link>
+                  ) : (
+                    <Link href="/auth/signin">
+                      <User className="h-5 w-5" />
+                    </Link>
+                  )}
+                </div>
               </AvatarFallback>
             </Avatar>
-          </Button>
+            {hovered && (
+              <div
+                className="absolute top-full right-0 z-10 hidden rounded bg-background p-2 shadow-lg transition-opacity hover:opacity-100 md:flex flex-col gap-2 w-fit"
+                onMouseEnter={handleMouseEnter}
+                onMouseLeave={handleMouseLeave}
+              >
+                <Link href="/profile">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="w-full justify-start flex flex-row"
+                  >
+                    <UserIcon className="mr-2 h-4 w-4" />
+                    Profile
+                  </Button>
+                </Link>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="w-full justify-start flex flex-row"
+                  onClick={() => signOut()}
+                >
+                  <LogOutIcon className="mr-2 h-4 w-4" />
+                  Sign Out
+                </Button>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </header>

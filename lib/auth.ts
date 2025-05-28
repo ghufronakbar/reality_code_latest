@@ -1,34 +1,60 @@
 import { AuthOptions, getServerSession } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
+import GithubProvider from "next-auth/providers/github";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { db } from "@/config/db";
 import bcrypt from "bcryptjs";
-import { GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET } from "@/constants/auth";
+import {
+  GITHUB_ID,
+  GITHUB_SECRET,
+  GOOGLE_CLIENT_ID,
+  GOOGLE_CLIENT_SECRET,
+} from "@/constants/auth";
 import { redirect } from "next/navigation";
 import axios, { AxiosError } from "axios";
 import { toast } from "@/hooks/use-toast";
 import { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
 import { User } from "@prisma/client";
 import type { GoogleProfile } from "next-auth/providers/google";
+import type { GithubProfile } from "next-auth/providers/github";
 import { SignUpSchema } from "@/app/auth/signup/page";
 export const authOptions: AuthOptions = {
   providers: [
     GoogleProvider({
       clientId: GOOGLE_CLIENT_ID,
       clientSecret: GOOGLE_CLIENT_SECRET,
-      async profile(p: GoogleProfile) {
+      async profile(profile: GoogleProfile) {
         const userFromDb = await db.user.findUnique({
-          where: { email: p.email },
+          where: { email: profile.email },
         });
         return {
-          id: p.sub,
-          name: p.name,
-          email: p.email,
-          image: p.picture,
-          role: userFromDb?.role || "USER",
+          id: profile.sub,
+          name: profile.name,
+          email: profile.email,
+          image: userFromDb?.profilePictureUrl || profile.picture,
+          role: userFromDb?.role || "User",
         };
       },
     }),
+
+    GithubProvider({
+      clientId: GITHUB_ID,
+      clientSecret: GITHUB_SECRET,
+      async profile(profile) {
+        console.log("profile", profile);
+        const userFromDb = await db.user.findUnique({
+          where: { email: profile.email },
+        });
+        return {
+          id: userFromDb?.id?.toString() || profile?.id,
+          name: profile?.name || profile?.login,
+          role: userFromDb?.role || "User",
+          email: profile?.email,
+          image: userFromDb?.profilePictureUrl || profile?.avatar_url,          
+        };
+      },
+    }),
+
     CredentialsProvider({
       name: "Sign In",
       credentials: {
@@ -72,6 +98,8 @@ export const authOptions: AuthOptions = {
     async signIn({ user, account }) {
       if (!user || !account) return false;
       if (!user.email) return false;
+
+      console.log("user", user);
 
       const userExists = await db.user.findUnique({
         where: { email: user?.email },
