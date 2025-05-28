@@ -6,7 +6,7 @@ import { db } from "@/config/db";
 export async function PUT(req: Request) {
   try {
     const session = await getServerSession(authOptions);
-    
+
     if (!session?.user?.email) {
       return new NextResponse("Unauthorized", { status: 401 });
     }
@@ -25,7 +25,11 @@ export async function PUT(req: Request) {
       },
     });
 
-    return NextResponse.json(updatedUser);
+    return NextResponse.json({
+      status: 200,
+      message: "Profile updated successfully",
+      data: updatedUser,
+    });
   } catch (error) {
     console.error("[USER_PROFILE_UPDATE]", error);
     return new NextResponse("Internal Error", { status: 500 });

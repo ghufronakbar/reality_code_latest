@@ -1,32 +1,54 @@
-"use client";
-
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import { useSes } from "@/components/session-wrapper";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Package, Star, ShoppingBag, Store, Edit, ArrowRight } from "lucide-react";
+import {
+  Package,
+  Star,
+  ShoppingBag,
+  Store,
+  Edit,
+  ArrowRight,
+} from "lucide-react";
 import Link from "next/link";
+import { serverSession } from "@/lib/auth";
+import { SignOutButton } from "./client";
+import { db } from "@/config/db";
 
-export default function ProfilePage() {
-  const { session, status } = useSes();
-  const router = useRouter();
-  const [isLoading, setIsLoading] = useState(true);
+const getSellerInfo = async (email: string) => {
+  const seller = await db.seller.findFirst({
+    where: {
+      user: {
+        email,
+      },
+    },
+    include: {
+      products: {
+        include: {
+          productReviews: {
+            select: {
+              rating: true,
+            },
+          },
+          category: {
+            select: {
+              name: true,
+            },
+          },
+        },
+      },
+    },
+  });
 
-  useEffect(() => {
-    if (status === "unauthenticated") {
-      router.push("/auth/signin");
-    } else {
-      setIsLoading(false);
-    }
-  }, [status, router]);
+  return seller;
+};
 
-  if (isLoading || !session) {
-    return <div>Loading...</div>;
-  }
+export type SellerInfo = Awaited<ReturnType<typeof getSellerInfo>>;
+
+export default async function ProfilePage() {
+  const session = await serverSession();
+  const seller = await getSellerInfo(session.user.email);
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -35,23 +57,38 @@ export default function ProfilePage() {
           <Card>
             <CardHeader className="flex flex-row items-center gap-4">
               <Avatar className="h-20 w-20">
-                <AvatarImage src={session.user.profilePictureUrl || ""} />
+                <AvatarImage
+                  src={session.user.profilePictureUrl || ""}
+                  className="object-cover"
+                />
                 <AvatarFallback>
-                  {session.user.name?.split(" ").map((n) => n[0]).join("")}
+                  {session.user.name
+                    ?.split(" ")
+                    .map((n) => n[0])
+                    .join("")}
                 </AvatarFallback>
               </Avatar>
               <div className="flex-1">
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between flex-wrap gap-2 mb-4">
                   <div>
                     <h1 className="text-2xl font-bold">{session.user.name}</h1>
-                    <p className="text-muted-foreground">{session.user.email}</p>
+                    <p className="text-muted-foreground">
+                      {session.user.email}
+                    </p>
                   </div>
-                  <Button variant="outline" asChild>
-                    <Link href="/profile/edit">
-                      <Edit className="h-4 w-4 mr-2" />
-                      Edit Profile
-                    </Link>
-                  </Button>
+                  <div className="flex flex-col gap-2">
+                    <Button
+                      variant="outline"
+                      asChild
+                      className="flex items-center"
+                    >
+                      <Link href="/profile/edit">
+                        <Edit className="h-4 w-4 mr-2" />
+                        Edit Profile
+                      </Link>
+                    </Button>
+                    <SignOutButton />
+                  </div>
                 </div>
                 <div className="flex gap-2 mt-2">
                   <Badge>{session.user.role}</Badge>
@@ -96,14 +133,46 @@ export default function ProfilePage() {
         </div>
 
         <div className="space-y-6">
-          {session.user.role !== "Admin" && (
+          {!seller ? (
             <Card>
               <CardHeader>
                 <CardTitle>Become a Seller</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <p className="text-muted-foreground">
-                  Start selling your software products on our platform and reach thousands of potential customers.
+                  Start selling your software products on our platform and reach
+                  thousands of potential customers.
+                </p>
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <Package className="h-4 w-4 text-primary" />
+                    <span>List unlimited products</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Store className="h-4 w-4 text-primary" />
+                    <span>Custom seller profile</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Star className="h-4 w-4 text-primary" />
+                    <span>Build your reputation</span>
+                  </div>
+                </div>
+                <Separator className="my-4" />
+                <Button className="w-full">
+                  Become a Seller
+                  <ArrowRight className="h-4 w-4 ml-2" />
+                </Button>
+              </CardContent>
+            </Card>
+          ) : (
+            <Card>
+              <CardHeader>
+                <CardTitle>Imma Seller</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <p className="text-muted-foreground">
+                  Start selling your software products on our platform and reach
+                  thousands of potential customers.
                 </p>
                 <div className="space-y-2">
                   <div className="flex items-center gap-2">

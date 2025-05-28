@@ -9,6 +9,7 @@ import {
   GITHUB_SECRET,
   GOOGLE_CLIENT_ID,
   GOOGLE_CLIENT_SECRET,
+  NEXTAUTH_SECRET,
 } from "@/constants/auth";
 import { redirect } from "next/navigation";
 import axios, { AxiosError } from "axios";
@@ -16,7 +17,6 @@ import { toast } from "@/hooks/use-toast";
 import { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
 import { User } from "@prisma/client";
 import type { GoogleProfile } from "next-auth/providers/google";
-import type { GithubProfile } from "next-auth/providers/github";
 import { SignUpSchema } from "@/app/auth/signup/page";
 export const authOptions: AuthOptions = {
   providers: [
@@ -28,9 +28,9 @@ export const authOptions: AuthOptions = {
           where: { email: profile.email },
         });
         return {
-          id: profile.sub,
-          name: profile.name,
-          email: profile.email,
+          id: userFromDb?.id?.toString() || profile.sub,
+          name: userFromDb?.name || profile.name,
+          email: userFromDb?.email || profile.email,
           image: userFromDb?.profilePictureUrl || profile.picture,
           role: userFromDb?.role || "User",
         };
@@ -47,10 +47,10 @@ export const authOptions: AuthOptions = {
         });
         return {
           id: userFromDb?.id?.toString() || profile?.id,
-          name: profile?.name || profile?.login,
+          name: userFromDb?.name || profile?.name || profile?.login,
           role: userFromDb?.role || "User",
           email: profile?.email,
-          image: userFromDb?.profilePictureUrl || profile?.avatar_url,          
+          image: userFromDb?.profilePictureUrl || profile?.avatar_url,
         };
       },
     }),
@@ -124,19 +124,24 @@ export const authOptions: AuthOptions = {
         const userFromDb = await db.user.findUnique({
           where: { email: session?.user?.email },
           select: {
+            email: true,
             role: true,
             profilePictureUrl: true,
+            bio: true,
+            name: true,
           },
         });
-        if (userFromDb?.role) {
+        if (userFromDb) {
           session.user.role = userFromDb.role;
           session.user.profilePictureUrl = userFromDb.profilePictureUrl;
+          session.user.bio = userFromDb.bio;
+          session.user.name = userFromDb.name;
         }
       }
       return session;
     },
   },
-
+  secret: NEXTAUTH_SECRET,
   pages: {
     signIn: "/auth/signin",
   },

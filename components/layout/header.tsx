@@ -71,7 +71,7 @@ export default function Header({ categories }: Props) {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/80 backdrop-blur-sm">
-      <div className="container mx-auto px-4 flex h-16 items-center justify-between">
+      <div className="container mx-auto flex h-16 items-center justify-between">
         <div className="flex items-center">
           <Sheet>
             <SheetTrigger asChild>
@@ -80,12 +80,17 @@ export default function Header({ categories }: Props) {
                 <span className="sr-only">Toggle menu</span>
               </Button>
             </SheetTrigger>
-            <SheetContent side="left" className="pr-0">
-              <MobileNav categories={categories} />
+            <SheetContent side="left">
+              <MobileNav
+                categories={categories}
+                onSubmitSearch={onSubmitSearch}
+                setSearch={setSearch}
+                search={search}
+              />
             </SheetContent>
           </Sheet>
 
-          <Link href="/" className="mr-6 flex items-center space-x-2">
+          <Link href="/" className="mr-6 flex items-center space-x-2 px-2">
             <span className="font-bold text-xl">RealityCode</span>
           </Link>
 
@@ -202,7 +207,10 @@ export default function Header({ categories }: Props) {
               onMouseLeave={handleMouseLeave}
             >
               <Link href="/profile">
-                <AvatarImage src={session?.user?.profilePictureUrl || ""} />
+                <AvatarImage
+                  src={session?.user?.profilePictureUrl || ""}
+                  className="object-cover"
+                />
               </Link>
               <AvatarFallback className="bg-transparent">
                 <div className="flex h-full items-center justify-center">
@@ -258,16 +266,34 @@ export default function Header({ categories }: Props) {
   );
 }
 
-function MobileNav({ categories }: Props) {
+interface MobileNavProps {
+  onSubmitSearch: (e: React.FormEvent) => void;
+  search: string;
+  setSearch: React.Dispatch<React.SetStateAction<string>>;
+}
+
+function MobileNav({
+  categories,
+  onSubmitSearch,
+  search,
+  setSearch,
+}: Props & MobileNavProps) {
+  const { status } = useSes();
   return (
     <div className="flex flex-col h-full">
       <Link href="/" className="py-4 font-bold text-xl">
         RealityCode
       </Link>
 
-      <div className="py-4">
-        <Input type="search" placeholder="Search products..." />
-      </div>
+      <form className="py-4">
+        <Input
+          type="search"
+          placeholder="Search products..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && onSubmitSearch(e)}
+        />
+      </form>
 
       <nav className="flex flex-col space-y-4 py-4">
         <Link href="/products" className="py-2 hover:underline">
@@ -292,13 +318,29 @@ function MobileNav({ categories }: Props) {
         </Link>
       </nav>
 
-      <div className="mt-auto pb-8 space-y-4">
-        <Link href="/auth/signin" className="block py-2 hover:underline">
-          Sign In
-        </Link>
-        <Link href="/auth/signup" className="block py-2 hover:underline">
-          Sign Up
-        </Link>
+      <div className="mt-auto pb-8 space-y-2">
+        {status === "loading" ? null : status === "authenticated" ? (
+          <>
+            <Link href="/profile" className="block py-2 hover:underline">
+              Profile
+            </Link>
+            <div
+              onClick={() => signOut()}
+              className="block py-2 hover:underline"
+            >
+              Sign Out
+            </div>
+          </>
+        ) : (
+          <>
+            <Link href="/auth/signin" className="block py-2 hover:underline">
+              Sign In
+            </Link>
+            <Link href="/auth/signup" className="block py-2 hover:underline">
+              Sign Up
+            </Link>
+          </>
+        )}
       </div>
     </div>
   );

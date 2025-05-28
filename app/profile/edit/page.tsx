@@ -19,14 +19,15 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "@/hooks/use-toast";
-import { uploadImage } from "@/config/cloudinary";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Loader2 } from "lucide-react";
+import { User } from "@prisma/client";
+import { Api } from "@/types/schema";
 
 const formSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
   bio: z.string().max(500, "Bio must be less than 500 characters").optional(),
-  profilePicture: z.any().optional(),
+  profilePicture: z.string().optional(),
 });
 
 export default function EditProfilePage() {
@@ -47,6 +48,9 @@ export default function EditProfilePage() {
     if (status === "unauthenticated") {
       router.push("/auth/signin");
     } else {
+      form.setValue("name", session?.user?.name || "");
+      form.setValue("bio", session?.user?.bio || "");
+      form.setValue("profilePicture", session?.user?.profilePictureUrl || "");
       setIsLoading(false);
     }
   }, [status, router]);
@@ -54,11 +58,6 @@ export default function EditProfilePage() {
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
       setIsSubmitting(true);
-      let profilePictureUrl = session?.user?.profilePictureUrl;
-
-      if (values.profilePicture?.[0]) {
-        profilePictureUrl = await uploadImage(values.profilePicture[0]);
-      }
 
       const response = await fetch("/api/user/profile", {
         method: "PUT",
@@ -68,13 +67,15 @@ export default function EditProfilePage() {
         body: JSON.stringify({
           name: values.name,
           bio: values.bio,
-          profilePictureUrl,
+          profilePictureUrl: values.profilePicture,
         }),
       });
 
       if (!response.ok) {
         throw new Error("Failed to update profile");
       }
+
+      await response.json();
 
       await update();
 
@@ -96,8 +97,26 @@ export default function EditProfilePage() {
     }
   };
 
+  const onChangeImage = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e?.target?.files?.[0]) {
+      const image = e.target.files[0];
+      const formData = new FormData();
+      formData.append("image", image);
+      const response = await fetch(`/api/image`, {
+        method: "POST",
+        body: formData,
+      });
+      const data = (await response.json()) as { data: { url: string } };
+      form.setValue("profilePicture", data.data.url);
+    }
+  };
+
   if (isLoading || !session) {
-    return <div>Loading...</div>;
+    return (
+      <div className="flex items-center justify-center w-full min-h-screen">
+        Loading...
+      </div>
+    );
   }
 
   return (
@@ -112,14 +131,14 @@ export default function EditProfilePage() {
               <div className="flex items-center gap-4">
                 <Avatar className="h-20 w-20">
                   <AvatarImage
-                    src={
-                      form.watch("profilePicture")?.[0]
-                        ? URL.createObjectURL(form.watch("profilePicture")[0])
-                        : session.user.profilePictureUrl || ""
-                    }
+                    src={form.watch("profilePicture")}
+                    className="object-cover"
                   />
                   <AvatarFallback>
-                    {session.user.name?.split(" ").map((n) => n[0]).join("")}
+                    {session.user.name
+                      ?.split(" ")
+                      .map((n) => n[0])
+                      .join("")}
                   </AvatarFallback>
                 </Avatar>
                 <FormField
@@ -132,10 +151,8 @@ export default function EditProfilePage() {
                           type="file"
                           accept="image/*"
                           onChange={(e) => {
-                            const file = e.target.files?.[0];
-                            if (file) {
-                              onChange(e.target.files);
-                            }
+                            // onChange(e);
+                            onChangeImage(e);
                           }}
                           {...field}
                         />
