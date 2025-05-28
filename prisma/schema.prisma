@@ -1,9 +1,6 @@
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -16,7 +13,7 @@ datasource db {
 
 model Product {
   id   String @id @default(uuid())
-  slug String @unique // Unique identifier for the product, used in URLs
+  slug String @unique
 
   name        String
   headline    String
@@ -26,9 +23,9 @@ model Product {
   images       String[]
   demoVideoUrl String?
 
-  license     String // e.g. "Commercial", "Personal", "Extended"
-  platforms   String[] // e.g. "Web", "iOS", "Android"
-  tags        String[] // e.g. "POS", "CRM", "Coffee Shop"  
+  license     String
+  platforms   String[]
+  tags        String[]
   keyFeatures String[]
 
   price         Float
@@ -51,7 +48,6 @@ model Product {
   updatedAt DateTime @default(now()) @updatedAt
 }
 
-// This model is used to categorize products, such as "Business", "College Task", etc.
 model ProductCategory {
   id           String @id @default(uuid())
   name         String
@@ -67,8 +63,8 @@ model ProductCategory {
 
 model ProductSpesification {
   id    String @id @default(uuid())
-  name  String // e.g. "Language Support", "Theme Support"
-  value String // e.g. "English & 日本語", "Light & Dark"  
+  name  String
+  value String
 
   product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
   productId String
@@ -79,9 +75,9 @@ model ProductSpesification {
 
 model ProductTool {
   id          String  @id @default(uuid())
-  name        String // e.g. "Database", "Runtime Environment"
-  value       String // e.g. "PostgreSQL", "Node.js"
-  description String? // Optional description for the requirement
+  name        String
+  value       String
+  description String?
 
   product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
   productId String
@@ -91,16 +87,16 @@ model ProductTool {
 }
 
 model ProductReview {
-  id      String  @id @default(uuid())
-  rating  Int // e.g. 1 to 5 stars
-  title   String // Short title for the review
-  comment String? // Optional comment
-  reviewerId  String // In Next Plan, we will add user authentication
+  id         String  @id @default(uuid())
+  rating     Int
+  title      String
+  comment    String?
+  reviewerId String
 
   product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
   productId String
 
-  reviewer  User @relation(fields: [reviewerId], references: [id], onDelete: Cascade)
+  reviewer User @relation(fields: [reviewerId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now()) @updatedAt
@@ -111,19 +107,19 @@ model User {
   email    String  @unique
   password String?
 
-  provider String? // e.g. "google", "github", "email"
+  provider String?
 
   name              String?
   profilePictureUrl String?
-  bio               String? // Short biography or description
+  bio              String?
 
   role UserRole @default(User)
 
-  roomChats RoomChat[] // Chats the user is part of
-  chats     Chat[] // Messages sent by the user
-  reviews  ProductReview[] // Reviews written by the user
+  roomChats RoomChat[]
+  chats     Chat[]
+  reviews   ProductReview[]
 
-  seller Seller? // Optional seller profile if the user is a seller
+  seller Seller?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now()) @updatedAt
@@ -143,17 +139,84 @@ model Seller {
   logo        String?
   description String?
 
-  products Product[] // Products listed by the seller
+  businessType    String?
+  businessAddress String?
+  phoneNumber     String?
+  website         String?
 
-  isActive   Boolean @default(true)
-  isDeleted  Boolean @default(false)
-  isBanned   Boolean @default(false)
-  isVerified Boolean @default(false) // Indicates if the seller is verified
-  // isFeatured Boolean @default(false) // Indicates if the seller is featured
-  // isPremium  Boolean @default(false) // Indicates if the seller has a premium account
+  bankName      String?
+  bankAccount   String?
+  bankHolder    String?
+  taxIdentifier String?
+
+  documents Document[]
+  products  Product[]
+  orders    Order[]
+
+  isActive    Boolean @default(true)
+  isDeleted   Boolean @default(false)
+  isBanned    Boolean @default(false)
+  isVerified  Boolean @default(false)
+  isFeatured  Boolean @default(false)
+  isPremium   Boolean @default(false)
+
+  totalRevenue Float   @default(0)
+  totalSales   Int     @default(0)
+  rating       Float   @default(0)
+  ratingCount  Int     @default(0)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now()) @updatedAt
+}
+
+model Document {
+  id          String @id @default(uuid())
+  name        String
+  type        String
+  url         String
+  description String?
+
+  seller   Seller @relation(fields: [sellerId], references: [id], onDelete: Cascade)
+  sellerId String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+}
+
+model Order {
+  id            String      @id @default(uuid())
+  orderNumber   String      @unique
+  status        OrderStatus @default(Pending)
+  totalAmount   Float
+  paymentStatus String
+
+  seller   Seller @relation(fields: [sellerId], references: [id], onDelete: Cascade)
+  sellerId String
+
+  items OrderItem[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+}
+
+model OrderItem {
+  id       String @id @default(uuid())
+  quantity Int
+  price    Float
+
+  order   Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  orderId String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+}
+
+enum OrderStatus {
+  Pending
+  Processing
+  Completed
+  Cancelled
+  Refunded
 }
 
 model RoomChat {
