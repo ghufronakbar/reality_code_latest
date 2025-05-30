@@ -27,6 +27,7 @@ model Product {
   platforms   String[]
   tags        String[]
   keyFeatures String[]
+  versions    ProductVersion[]
 
   price         Float
   originalPrice Float
@@ -266,4 +267,35 @@ enum TypeChat {
   Image
   Product
   AI
+}
+
+model ProductVersion {
+  id          String @id @default(uuid())
+  version     String
+  name        String
+  description String @db.Text()
+
+  product   Product              @relation(fields: [productId], references: [id], onDelete: Cascade)
+  productId String
+  links     ProductVersionLink[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+}
+
+model ProductVersionLink {
+  id   String @id @default(uuid())
+  name String
+  tier Tier
+
+  productVersion   ProductVersion @relation(fields: [productVersionId], references: [id], onDelete: Cascade)
+  productVersionId String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+}
+
+enum Tier {
+  Free
+  Premium
 }
