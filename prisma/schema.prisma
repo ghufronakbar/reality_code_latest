@@ -36,6 +36,7 @@ model Product {
   productSpesifications ProductSpesification[]
   productTools          ProductTool[]
   productReviews        ProductReview[]
+  orderItems            OrderItem[]
 
   isActive  Boolean @default(true)
   isDeleted Boolean @default(false)
@@ -111,7 +112,7 @@ model User {
 
   name              String?
   profilePictureUrl String?
-  bio              String?
+  bio               String?
 
   role UserRole @default(User)
 
@@ -139,38 +140,50 @@ model Seller {
   logo        String?
   description String?
 
-  businessType    String?
-  businessAddress String?
-  phoneNumber     String?
+  businessType    String
+  businessAddress String
+  phoneNumber     String
   website         String?
 
-  bankName      String?
-  bankAccount   String?
-  bankHolder    String?
-  taxIdentifier String?
-
+  banks     Bank[]
   documents Document[]
   products  Product[]
   orders    Order[]
 
-  isActive    Boolean @default(true)
-  isDeleted   Boolean @default(false)
-  isBanned    Boolean @default(false)
-  isVerified  Boolean @default(false)
-  isFeatured  Boolean @default(false)
-  isPremium   Boolean @default(false)
-
-  totalRevenue Float   @default(0)
-  totalSales   Int     @default(0)
-  rating       Float   @default(0)
-  ratingCount  Int     @default(0)
+  isActive   Boolean @default(true)
+  isDeleted  Boolean @default(false)
+  isBanned   Boolean @default(false)
+  isVerified Boolean @default(false)
+  // isFeatured  Boolean @default(false)
+  // isPremium   Boolean @default(false)  
 
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now()) @updatedAt
 }
 
+model Bank {
+  id            String     @id @default(uuid())
+  name          String
+  accountNumber String
+  bankCode      String
+  holderName    String
+  status        BankStatus @default(Pending)
+
+  seller   Seller @relation(fields: [sellerId], references: [id], onDelete: Cascade)
+  sellerId String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+}
+
+enum BankStatus {
+  Verified
+  Pending
+  Deleted
+}
+
 model Document {
-  id          String @id @default(uuid())
+  id          String  @id @default(uuid())
   name        String
   type        String
   url         String
@@ -206,6 +219,9 @@ model OrderItem {
 
   order   Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
   orderId String
+
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  productId String
 
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now()) @updatedAt

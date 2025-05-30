@@ -1,15 +1,14 @@
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { serverSession } from "@/lib/auth";
 import { db } from "@/config/db";
 
 export async function POST(req: Request) {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await serverSession();
 
-    if (!session?.user?.email) {
+    if (!session?.user?.email || !session?.user?.id) {
       return new NextResponse("Unauthorized", { status: 401 });
-    }
+    }  
 
     const body = await req.json();
     const {
@@ -22,7 +21,7 @@ export async function POST(req: Request) {
       bankName,
       bankAccount,
       bankHolder,
-      taxIdentifier,
+      // taxIdentifier,
     } = body;
 
     const seller = await db.seller.create({
@@ -33,11 +32,16 @@ export async function POST(req: Request) {
         businessType,
         businessAddress,
         phoneNumber,
-        website,
-        bankName,
-        bankAccount,
-        bankHolder,
-        taxIdentifier,
+        website,        
+        banks: {
+          create: {
+            accountNumber: bankAccount,
+            bankCode: "SOME_CODE TO DO SOON",
+            status: "Pending",
+            name: bankName,
+            holderName: bankHolder,
+          },
+        },
       },
     });
 

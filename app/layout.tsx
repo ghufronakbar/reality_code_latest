@@ -6,7 +6,7 @@ import { Toaster } from "@/components/ui/toaster";
 import Header from "@/components/layout/header";
 import Footer from "@/components/layout/footer";
 import { CartProvider } from "@/providers/cart-provider";
-import { getCategories } from "@/lib/categories";
+import { getCategories, MappedCategories } from "@/lib/categories";
 import { SessionWrapper } from "@/components/session-wrapper";
 
 const inter = Inter({ subsets: ["latin"] });

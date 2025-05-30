@@ -129,6 +129,7 @@ export const authOptions: AuthOptions = {
             profilePictureUrl: true,
             bio: true,
             name: true,
+            id: true,
           },
         });
         if (userFromDb) {
@@ -136,6 +137,7 @@ export const authOptions: AuthOptions = {
           session.user.profilePictureUrl = userFromDb.profilePictureUrl;
           session.user.bio = userFromDb.bio;
           session.user.name = userFromDb.name;
+          session.user.id = userFromDb.id;
         }
       }
       return session;

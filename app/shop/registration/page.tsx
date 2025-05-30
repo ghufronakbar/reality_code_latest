@@ -36,8 +36,7 @@ const formSchema = z.object({
   // Bank Information
   bankName: z.string().min(2, "Bank name is required"),
   bankAccount: z.string().min(5, "Bank account number is required"),
-  bankHolder: z.string().min(2, "Account holder name is required"),
-  taxIdentifier: z.string().min(5, "Tax identifier is required"),
+  bankHolder: z.string().min(2, "Account holder name is required"),  
 });
 
 export default function SellerRegistration() {
@@ -57,13 +56,13 @@ export default function SellerRegistration() {
       website: "",
       bankName: "",
       bankAccount: "",
-      bankHolder: "",
-      taxIdentifier: "",
+      bankHolder: "",      
     },
   });
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
+      console.log(values);
       setIsSubmitting(true);
       
       const response = await fetch("/api/seller/register", {
@@ -99,11 +98,12 @@ export default function SellerRegistration() {
     const fields = {
       1: ["businessName", "businessType", "businessAddress", "description"],
       2: ["phoneNumber", "website"],
-      3: ["bankName", "bankAccount", "bankHolder", "taxIdentifier"],
+      3: ["bankName", "bankAccount", "bankHolder"],
     }[step];
 
     const isValid = fields?.every((field) => {
       const value = form.getValues(field as any);
+      if (field === "website") return true;
       return value && value.length > 0;
     });
 
@@ -287,21 +287,7 @@ export default function SellerRegistration() {
                         <FormMessage />
                       </FormItem>
                     )}
-                  />
-                  
-                  <FormField
-                    control={form.control}
-                    name="taxIdentifier"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Tax Identifier</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Tax ID / VAT number" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                  />                                    
                 </div>
               )}
 
