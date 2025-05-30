@@ -1,14 +1,37 @@
+import { db } from "@/config/db";
+import { serverSession } from "@/lib/auth";
+import { ReactNode } from "react";
+import React from "react";
+import DashboardLayoutClient from "./layout-client";
+
 interface Props {
-  children: React.ReactNode;
+  children: ReactNode;
 }
 
-const SellerDashboardLayout: React.FC<Props> = ({ children }) => {
-  return (
-    <div>
-      <h1>Seller Dashboard</h1>
-      {children}
-    </div>
-  );
+const getSellerInfo = async () => {
+  const session = await serverSession();
+  const seller = await db.seller.findUnique({
+    where: {
+      userId: session?.user.id,
+    },
+    select: {
+      name: true,
+      logo: true,
+      user: {
+        select: {
+          name: true,
+          profilePictureUrl: true,
+        },
+      },
+    },
+  });
+  return seller;
 };
+export type SellerInfo = Awaited<ReturnType<typeof getSellerInfo>>;
 
-export default SellerDashboardLayout;
+export default async function SellerDashboardLayout({ children }: Props) {
+  const seller = await getSellerInfo();
+  return (
+    <DashboardLayoutClient seller={seller}>{children}</DashboardLayoutClient>
+  );
+}

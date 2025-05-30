@@ -8,6 +8,8 @@ import Footer from "@/components/layout/footer";
 import { CartProvider } from "@/providers/cart-provider";
 import { getCategories, MappedCategories } from "@/lib/categories";
 import { SessionWrapper } from "@/components/session-wrapper";
+import { headers } from "next/headers";
+import { BASE_URL } from "@/constants";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -21,7 +23,13 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const categories = await getCategories();
+  let categories: MappedCategories = [];
+  const listHeader = await headers();
+  const pathname = listHeader.get("x-url") || "/";
+  const isShopDashboard = pathname?.startsWith(`${BASE_URL}/shop/dashboard`);
+  if (!isShopDashboard) {
+    categories = await getCategories();
+  }  
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={inter.className}>
@@ -34,9 +42,9 @@ export default async function RootLayout({
           >
             <CartProvider>
               <div className="flex min-h-screen flex-col">
-                <Header categories={categories} />
+                {!isShopDashboard && <Header categories={categories} />}
                 <main className="flex-1">{children}</main>
-                <Footer categories={categories} />
+                {!isShopDashboard && <Footer categories={categories} />}
               </div>
               <Toaster />
             </CartProvider>
