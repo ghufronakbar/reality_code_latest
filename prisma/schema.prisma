@@ -286,6 +286,8 @@ model ProductVersion {
 model ProductVersionLink {
   id   String @id @default(uuid())
   name String
+  link String
+  description String @db.Text()
   tier Tier
 
   productVersion   ProductVersion @relation(fields: [productVersionId], references: [id], onDelete: Cascade)

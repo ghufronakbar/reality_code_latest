@@ -86,6 +86,7 @@ export default async function ProductsPage({
       p.name.toLowerCase().includes(qSearch.toLowerCase())
     );
   }
+
   return (
     <div className="space-y-6">
       <Card>
@@ -191,6 +192,13 @@ export default async function ProductsPage({
                         >
                           <Button size="sm" variant="outline">
                             Edit
+                          </Button>
+                        </Link>
+                        <Link
+                          href={`/shop/dashboard/products/${product.id}/version`}
+                        >
+                          <Button size="sm" variant="secondary">
+                            Version Control
                           </Button>
                         </Link>
                         <Link href={`/shop/dashboard/products/${product.id}`}>
