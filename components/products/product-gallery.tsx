@@ -6,6 +6,7 @@ import Image from "next/image";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Play } from "lucide-react";
+import { getVideoEmbed } from "@/helper/getVideoEmbed";
 
 interface ProductGalleryProps {
   images: string[];
@@ -48,7 +49,7 @@ export default function ProductGallery({ images, video }: ProductGalleryProps) {
           </DialogContent>
         </Dialog>
       </div>
-      
+
       <div className="grid grid-cols-4 gap-4">
         {images.map((image, index) => (
           <div
@@ -69,7 +70,7 @@ export default function ProductGallery({ images, video }: ProductGalleryProps) {
             />
           </div>
         ))}
-        
+
         {video && (
           <Dialog>
             <DialogTrigger asChild>
@@ -77,19 +78,30 @@ export default function ProductGallery({ images, video }: ProductGalleryProps) {
                 <div className="absolute inset-0 flex items-center justify-center bg-black/50 group-hover:bg-black/70 transition-colors">
                   <Play className="h-8 w-8 text-white" />
                 </div>
+                {getVideoEmbed(video) && (
+                  <iframe
+                    src={getVideoEmbed(video || undefined) || ""}
+                    title="Demo Video"
+                    className="rounded w-full h-full"
+                    allow="autoplay; encrypted-media"
+                    allowFullScreen
+                  />
+                )}
                 <div className="h-full w-full bg-muted" />
               </div>
             </DialogTrigger>
             <DialogContent className="max-w-4xl">
               <div className="relative w-full overflow-hidden rounded-lg">
                 <AspectRatio ratio={16 / 9}>
-                  <iframe
-                    src={video}
-                    title="Product demo video"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    allowFullScreen
-                    className="h-full w-full"
-                  />
+                  {getVideoEmbed(video) && (
+                    <iframe
+                      src={getVideoEmbed(video) || ""}
+                      title="Demo Video"
+                      className="rounded w-full aspect-video"
+                      allow="autoplay; encrypted-media"
+                      allowFullScreen
+                    />
+                  )}
                 </AspectRatio>
               </div>
             </DialogContent>

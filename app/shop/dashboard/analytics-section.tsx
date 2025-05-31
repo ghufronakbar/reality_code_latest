@@ -2,6 +2,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 import { Star, ShoppingBag, Package, DollarSign, MessageSquare } from "lucide-react";
+import { formatPrice } from "@/helper/formatPrice";
 
 interface AnalyticsProps {
   analytics: {
@@ -23,7 +24,7 @@ export default function AnalyticsSection({ analytics }: AnalyticsProps) {
           <CardTitle className="text-base">Total Revenue</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold">${analytics.totalRevenue.toLocaleString()}</div>
+          <div className="text-2xl font-bold">{formatPrice(analytics.totalRevenue)}</div>
         </CardContent>
       </Card>
       <Card>

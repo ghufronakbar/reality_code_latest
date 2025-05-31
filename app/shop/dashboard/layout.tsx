@@ -3,6 +3,7 @@ import { serverSession } from "@/lib/auth";
 import { ReactNode } from "react";
 import React from "react";
 import DashboardLayoutClient from "./layout-client";
+import { redirect } from "next/navigation";
 
 interface Props {
   children: ReactNode;
@@ -17,6 +18,7 @@ const getSellerInfo = async () => {
     select: {
       name: true,
       logo: true,
+      isVerified: true,
       user: {
         select: {
           name: true,
@@ -31,6 +33,9 @@ export type SellerInfo = Awaited<ReturnType<typeof getSellerInfo>>;
 
 export default async function SellerDashboardLayout({ children }: Props) {
   const seller = await getSellerInfo();
+  if (!seller || !seller.isVerified) {
+    return redirect("/profile");
+  }
   return (
     <DashboardLayoutClient seller={seller}>{children}</DashboardLayoutClient>
   );

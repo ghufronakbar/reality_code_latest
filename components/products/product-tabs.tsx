@@ -18,6 +18,7 @@ interface ProductTabsProps {
   specifications: ProductSpesification[];
   tools: ProductTool[];
   reviews: (ProductReview & { reviewer: Partial<User> })[];
+  isSeller?: boolean;
 }
 
 export default function ProductTabs({
@@ -25,6 +26,7 @@ export default function ProductTabs({
   specifications,
   tools,
   reviews,
+  isSeller = false,
 }: ProductTabsProps) {
   return (
     <div className="mt-12">

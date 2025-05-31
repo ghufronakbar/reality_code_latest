@@ -4,7 +4,14 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import { usePathname } from "next/navigation";
-import { LogOut, LayoutDashboard, Package, Settings, ShoppingBag, ChevronDown } from "lucide-react";
+import {
+  LogOut,
+  LayoutDashboard,
+  Package,
+  Settings,
+  ShoppingBag,
+  ChevronDown,
+} from "lucide-react";
 import { Collapsible, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useState, useRef, useLayoutEffect } from "react";
@@ -21,7 +28,7 @@ const navItems = [
     icon: Package,
     children: [
       { label: "All Products", href: "/shop/dashboard/products" },
-      { label: "Add Product", href: "/shop/dashboard/products/new" },      
+      { label: "Add Product", href: "/shop/dashboard/products/new" },
     ],
   },
   {
@@ -47,7 +54,13 @@ interface SidebarProps {
   seller: SellerInfo;
 }
 
-function Expandable({ open, children }: { open: boolean; children: React.ReactNode }) {
+function Expandable({
+  open,
+  children,
+}: {
+  open: boolean;
+  children: React.ReactNode;
+}) {
   const ref = useRef<HTMLDivElement>(null);
   const [height, setHeight] = useState(0);
 
@@ -89,26 +102,50 @@ export default function Sidebar({ seller }: SidebarProps) {
       {/* User section */}
       <div className="h-20 flex items-center gap-3 px-6 border-b">
         <Avatar className="h-12 w-12">
-          <AvatarImage src={seller?.logo || seller?.user?.profilePictureUrl || "/default-avatar.png"} />
-          <AvatarFallback>{seller?.name?.split(" ").slice(0, 2).map((w) => w[0]).join("")}</AvatarFallback>
+          <AvatarImage
+            src={
+              seller?.logo ||
+              seller?.user?.profilePictureUrl ||
+              "/default-avatar.png"
+            }
+          />
+          <AvatarFallback>
+            {seller?.name
+              ?.split(" ")
+              .slice(0, 2)
+              .map((w) => w[0])
+              .join("")}
+          </AvatarFallback>
         </Avatar>
         <div>
-          <div className="font-semibold text-lg leading-tight">{seller?.name}</div>
-          <div className="text-xs text-muted-foreground">{seller?.user?.name}</div>
+          <div className="font-semibold text-lg leading-tight">
+            {seller?.name}
+          </div>
+          <div className="text-xs text-muted-foreground">
+            {seller?.user?.name}
+          </div>
         </div>
       </div>
       <ScrollArea className="flex-1">
         <nav className="flex flex-col gap-2 p-4">
-          <div className="text-xs font-semibold text-muted-foreground mb-2 px-2">Navigation</div>
+          <div className="text-xs font-semibold text-muted-foreground mb-2 px-2">
+            Navigation
+          </div>
           {navItems.map((item) => {
             const Icon = item.icon;
-            const isActive = item.href ? pathname.startsWith(item.href) : false;
+            const isActive = item.href ? pathname === item.href : false;
             const hasChildren = !!item.children;
             const open = openMenus[item.label] || false;
             // If any child is active, parent is active
-            const isChildActive = item.children?.some((child) => pathname.startsWith(child.href));
+            const isChildActive = item.children?.some(
+              (child) => pathname === child.href
+            );
             return hasChildren ? (
-              <Collapsible key={item.label} open={!!(open || isChildActive)} onOpenChange={() => handleToggle(item.label)}>
+              <Collapsible
+                key={item.label}
+                open={!!(open || isChildActive)}
+                onOpenChange={() => handleToggle(item.label)}
+              >
                 <CollapsibleTrigger asChild>
                   <Button
                     variant={isChildActive ? "secondary" : "ghost"}
@@ -118,15 +155,28 @@ export default function Sidebar({ seller }: SidebarProps) {
                       <Icon className="h-5 w-5" />
                       {item.label}
                     </span>
-                    <ChevronDown className={`h-4 w-4 transition-transform ${open || isChildActive ? "rotate-180" : ""}`} />
+                    <ChevronDown
+                      className={`h-4 w-4 transition-transform ${
+                        open || isChildActive ? "rotate-180" : ""
+                      }`}
+                    />
                   </Button>
                 </CollapsibleTrigger>
                 <Expandable open={!!(open || isChildActive)}>
                   <div className="ml-7 flex flex-col gap-1 mt-1">
                     {item.children.map((child) => (
-                      <Link href={child.href} key={child.href} legacyBehavior passHref>
+                      <Link
+                        href={child.href}
+                        key={child.href}
+                        legacyBehavior
+                        passHref
+                      >
                         <Button
-                          variant={pathname.startsWith(child.href) ? "secondary" : "ghost"}
+                          variant={
+                            pathname.startsWith(child.href)
+                              ? "secondary"
+                              : "ghost"
+                          }
                           className="justify-start w-full text-sm px-2 py-2"
                         >
                           {child.label}
@@ -149,7 +199,10 @@ export default function Sidebar({ seller }: SidebarProps) {
             );
           })}
           <Separator className="my-4" />
-          <Button variant="ghost" className="justify-start w-full gap-2 text-destructive px-2 py-2">
+          <Button
+            variant="ghost"
+            className="justify-start w-full gap-2 text-destructive px-2 py-2"
+          >
             <LogOut className="h-5 w-5" />
             Logout
           </Button>
@@ -157,4 +210,4 @@ export default function Sidebar({ seller }: SidebarProps) {
       </ScrollArea>
     </aside>
   );
-} 
+}

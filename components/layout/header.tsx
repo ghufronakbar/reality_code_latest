@@ -28,7 +28,7 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { MappedCategories } from "@/lib/categories";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { useSes } from "../session-wrapper";
 import { signOut } from "next-auth/react";
@@ -38,6 +38,7 @@ interface Props {
 }
 
 export default function Header({ categories }: Props) {
+  const pathname = usePathname();
   const { itemCount } = useCart();
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [search, setSearch] = useState("");
@@ -45,6 +46,11 @@ export default function Header({ categories }: Props) {
   const { session } = useSes();
 
   const { replace } = useRouter();
+  const [hovered, setHovered] = useState(false);
+
+  if (pathname.startsWith("/shop/dashboard")) {
+    return null;
+  }
 
   const onSubmitSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -54,8 +60,6 @@ export default function Header({ categories }: Props) {
       replace(`/search?search=${encodeURIComponent(search.trim())}`);
     }
   };
-
-  const [hovered, setHovered] = useState(false);
 
   const handleMouseEnter = (e: React.MouseEvent) => {
     e.preventDefault();

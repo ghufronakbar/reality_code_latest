@@ -12,9 +12,13 @@ import { formatDate } from "@/helper/formatDate";
 
 interface ProductInfoProps {
   product: MappedProduct;
+  isSeller?: boolean;
 }
 
-export default function ProductInfo({ product }: ProductInfoProps) {
+export default function ProductInfo({
+  product,
+  isSeller = false,
+}: ProductInfoProps) {
   const { addItem } = useCart();
   const { toast } = useToast();
 
@@ -100,16 +104,18 @@ export default function ProductInfo({ product }: ProductInfoProps) {
 
       <p className="text-muted-foreground">{product.headline}</p>
 
-      <div className="flex flex-col sm:flex-row gap-3">
-        <Button onClick={handleAddToCart} size="lg" className="flex-1">
-          <ShoppingCart className="mr-2 h-4 w-4" />
-          Add to Cart
-        </Button>
-        <Button variant="outline" size="lg">
-          <Bookmark className="mr-2 h-4 w-4" />
-          Save for Later
-        </Button>
-      </div>
+      {!isSeller && (
+        <div className="flex flex-col sm:flex-row gap-3">
+          <Button onClick={handleAddToCart} size="lg" className="flex-1">
+            <ShoppingCart className="mr-2 h-4 w-4" />
+            Add to Cart
+          </Button>
+          <Button variant="outline" size="lg">
+            <Bookmark className="mr-2 h-4 w-4" />
+            Save for Later
+          </Button>
+        </div>
+      )}
 
       <Separator />
 

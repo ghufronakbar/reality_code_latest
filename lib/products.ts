@@ -48,11 +48,54 @@ export async function getProducts() {
 
 export type MappedProducts = Awaited<ReturnType<typeof getProducts>>;
 
-// Function to get a product by ID
+// Function to get a product by Slug
 export async function getProductBySlug(slug: string) {
   const products = await db.product.findUnique({
     where: {
       slug,
+    },
+    include: {
+      category: true,
+      seller: true,
+      productReviews: {
+        include: {
+          reviewer: {
+            select: {
+              id: true,
+              name: true,
+              profilePictureUrl: true,
+            },
+          },
+        },
+      },
+      productSpesifications: true,
+      productTools: true,
+    },
+  });
+  if (!products) return null;
+  const data = {
+    ...products,
+    onSale: products.originalPrice > products.price,
+    rating:
+      products.productReviews.reduce((acc, review) => acc + review.rating, 0) /
+      (products.productReviews.length || 1),
+    reviewCount: products.productReviews.length,
+    percentageDiscount: products.originalPrice
+      ? Math.round(
+          ((products.originalPrice - products.price) / products.originalPrice) *
+            100
+        )
+      : 0,
+  };
+
+  return data;
+}
+
+// Function to get a product by Slug
+export async function getProductById(id: string) {
+  const products = await db.product.findUnique({
+    where: {
+      id,
     },
     include: {
       category: true,

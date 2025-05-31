@@ -3,12 +3,35 @@ import { serverSession } from "@/lib/auth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import Link from "next/link";
 import { Suspense } from "react";
+import { formatPrice } from "@/helper/formatPrice";
+import { Badge } from "@/components/ui/badge";
 
-async function getSellerProducts({ sellerId, status, category }: { sellerId: string; status?: string; category?: string }) {
+async function getSellerProducts({
+  sellerId,
+  status,
+  category,
+}: {
+  sellerId: string;
+  status?: string;
+  category?: string;
+}) {
   return db.product.findMany({
     where: {
       sellerId,
@@ -29,22 +52,39 @@ async function getCategories() {
   return db.productCategory.findMany({ orderBy: { name: "asc" } });
 }
 
-export default async function ProductsPage({ searchParams }: { searchParams?: { status?: string; category?: string; search?: string } }) {
+export default async function ProductsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{
+    status?: string;
+    category?: string;
+    search?: string;
+  }>;
+}) {
   const session = await serverSession();
   if (!session?.user?.id) {
     return <div className="p-8 text-center">Not authorized</div>;
   }
-  const seller = await db.seller.findUnique({ where: { userId: session.user.id } });
+  const seller = await db.seller.findUnique({
+    where: { userId: session.user.id },
+  });
   if (!seller) {
     return <div className="p-8 text-center">No seller found</div>;
   }
   const categories = await getCategories();
-  const status = searchParams?.status && searchParams.status !== "all" ? searchParams.status : "";
-  const category = searchParams?.category && searchParams.category !== "all" ? searchParams.category : "";
-  const search = searchParams?.search || "";
-  let products = await getSellerProducts({ sellerId: seller.id, status, category });
-  if (search) {
-    products = products.filter(p => p.name.toLowerCase().includes(search.toLowerCase()));
+  const { category, search, status } = await searchParams;
+  const qStatus = status && status !== "all" ? status : "";
+  const qCategory = category && category !== "all" ? category : "";
+  const qSearch = search || "";
+  let products = await getSellerProducts({
+    sellerId: seller.id,
+    status: qStatus,
+    category: qCategory,
+  });
+  if (qSearch) {
+    products = products.filter((p) =>
+      p.name.toLowerCase().includes(qSearch.toLowerCase())
+    );
   }
   return (
     <div className="space-y-6">
@@ -57,10 +97,10 @@ export default async function ProductsPage({ searchParams }: { searchParams?: { 
             <Input
               name="search"
               placeholder="Search by name..."
-              defaultValue={search}
+              defaultValue={qSearch}
               className="w-full md:w-64"
             />
-            <Select name="status" defaultValue={searchParams?.status || "all"}>
+            <Select name="status" defaultValue={status || "all"}>
               <SelectTrigger className="w-full md:w-40">
                 <SelectValue placeholder="Status" />
               </SelectTrigger>
@@ -71,20 +111,26 @@ export default async function ProductsPage({ searchParams }: { searchParams?: { 
                 <SelectItem value="banned">Banned</SelectItem>
               </SelectContent>
             </Select>
-            <Select name="category" defaultValue={searchParams?.category || "all"}>
+            <Select name="category" defaultValue={category || "all"}>
               <SelectTrigger className="w-full md:w-48">
                 <SelectValue placeholder="Category" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Categories</SelectItem>
                 {categories.map((cat) => (
-                  <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>
+                  <SelectItem key={cat.id} value={cat.id}>
+                    {cat.name}
+                  </SelectItem>
                 ))}
               </SelectContent>
             </Select>
-            <Button type="submit" className="md:ml-auto">Filter</Button>
+            <Button type="submit" className="md:ml-auto">
+              Filter
+            </Button>
             <Link href="/shop/dashboard/products/new">
-              <Button type="button" variant="default">+ Add Product</Button>
+              <Button type="button" variant="default">
+                + Add Product
+              </Button>
             </Link>
           </form>
           <div className="overflow-x-auto">
@@ -102,14 +148,30 @@ export default async function ProductsPage({ searchParams }: { searchParams?: { 
               <TableBody>
                 {products.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={6} className="text-center text-muted-foreground">No products found</TableCell>
+                    <TableCell
+                      colSpan={6}
+                      className="text-center text-muted-foreground"
+                    >
+                      No products found
+                    </TableCell>
                   </TableRow>
                 )}
                 {products.map((product) => (
                   <TableRow key={product.id}>
-                    <TableCell className="font-medium">{product.name}</TableCell>
+                    <TableCell className="font-medium">
+                      {product.name}
+                    </TableCell>
                     <TableCell>{product.category?.name || "-"}</TableCell>
-                    <TableCell>${product.price.toLocaleString()}</TableCell>
+                    <TableCell>
+                      <div className="flex flex-row items-center gap-2">
+                        {formatPrice(product.price)}
+                        {!!product.originalPrice && (
+                          <span className="text-sm text-muted-foreground line-through">
+                            {formatPrice(product.originalPrice, true)}
+                          </span>
+                        )}
+                      </div>
+                    </TableCell>
                     <TableCell>
                       {product.isBanned ? (
                         <span className="text-destructive">Banned</span>
@@ -119,11 +181,24 @@ export default async function ProductsPage({ searchParams }: { searchParams?: { 
                         <span className="text-muted-foreground">Inactive</span>
                       )}
                     </TableCell>
-                    <TableCell>{product.createdAt.toLocaleDateString()}</TableCell>
                     <TableCell>
-                      <Link href={`/shop/dashboard/products/${product.id}/edit`}>
-                        <Button size="sm" variant="outline">Edit</Button>
-                      </Link>
+                      {product.createdAt.toLocaleDateString()}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex flex-row gap-2">
+                        <Link
+                          href={`/shop/dashboard/products/${product.id}/edit`}
+                        >
+                          <Button size="sm" variant="outline">
+                            Edit
+                          </Button>
+                        </Link>
+                        <Link href={`/shop/dashboard/products/${product.id}`}>
+                          <Button size="sm" variant="default">
+                            Preview
+                          </Button>
+                        </Link>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -134,4 +209,4 @@ export default async function ProductsPage({ searchParams }: { searchParams?: { 
       </Card>
     </div>
   );
-} 
+}
